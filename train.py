@@ -11,24 +11,24 @@ from sub_envs.dynamic import MEDAEnv
 from lib import common, ppo
 
 class Params():
-	lr = 0.0001
+	lr = 1e-3
 	entropy_beta = 0.01
-	batch_size = 8
-	ppo_epoches = 5
+	batch_size = 32
+	ppo_epoches = 10
 
 	w = 8
 	h = 8
 	dsize = 1
 	s_modules = 0
 	d_modules = 3
-	importf = "881030.001/5"
+	importf = "881030.001/20"
 
 	useGPU = False
 	env_name = str(w)+str(h)+str(dsize)+str(s_modules)+str(d_modules)+str(lr)
 	gamma = 0.99
 	gae_lambda = 0.95
 	ppo_eps =  0.2
-	ppo_trajectory = 1025
+	ppo_trajectory = 1029
 	stop_test_reward = 10000
 	stop_reward = None
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 	print("Device is ", device)
 
 	net = ppo.PPO(env.observation_space, env.action_space).to(device)
-	net.load_checkpoint(params.importf)
+#	net.load_checkpoint(params.importf)
 	print(net)
 
 	agent = ptan.agent.PolicyAgent(lambda x: net(x)[0], apply_softmax=True,
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 #	optimizer = optim.Adam(net.parameters(), lr=params.lr, eps=1e-3)
 	optimizer = optim.SGD(net.parameters(), lr=params.lr, momentum=0.9)
 
-	scheduler = T.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1)
+	scheduler = T.optim.lr_scheduler.ExponentialLR(optimizer, gamma=1)
 
 	if not os.path.exists("saves"):
 		os.makedirs("saves")

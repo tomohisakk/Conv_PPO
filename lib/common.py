@@ -20,7 +20,7 @@ from sub_envs.map import MakeMap
 from sub_envs.map import Symbols
 from lib import ppo
 
-GAMES = 10000
+GAMES = 20000
 N_EPOCH = 1000
 
 def setup_ignite(engine: Engine, params: SimpleNamespace, exp_source, run_name: str, 
@@ -42,25 +42,29 @@ def setup_ignite(engine: Engine, params: SimpleNamespace, exp_source, run_name: 
 			mean_reward = np.mean(total_rewards[-GAMES:])
 			mean_n_steps = np.mean(total_n_steps_ep[-GAMES:])
 			passed = trainer.state.metrics.get('time_passed', 0)
-			print("Episode/Games %d/%d: reward=%.2f, steps=%d, "
+			print("%d/%d: reward=%.2f, steps=%d, "
 				"speed=%.1f f/s, elapsed=%s" % (
 				trainer.state.episode/GAMES, trainer.state.episode, 
 				mean_reward, mean_n_steps,
 				trainer.state.metrics.get('avg_fps', 0),
 				timedelta(seconds=int(passed))))
 
-		if trainer.state.episode == 200000:
+#		if trainer.state.episode == 200000:
 #			scheduler.step()
-			print("LR: ", optimizer.param_groups[0]['lr'])
-		elif trainer.state.episode == 100000:
+#			print("LR: ", optimizer.param_groups[0]['lr'])
+#		elif trainer.state.episode == 100000:
 #			scheduler.step()
-			print("LR: ", optimizer.param_groups[0]['lr'])
+#			print("LR: ", optimizer.param_groups[0]['lr'])
+
+#		if trainer.state.episode%GAMES == 0:
+#			if (optimizer.param_groups[0]['lr'] > 1e-8):
+#				scheduler.stecp()
+#				print("LR: ", optimizer.param_groups[0]['lr'])
 
 		if trainer.state.episode%GAMES == 0:
-			if (optimizer.param_groups[0]['lr'] >= 1e-5):
-#				scheduler.step()
+			if optimizer.param_groups[0]['lr'] > 1e-9:
+				scheduler.step()
 				print("LR: ", optimizer.param_groups[0]['lr'])
-		if trainer.state.episode%GAMES == 0:
 			save_name = params.env_name + "/" +str(int(trainer.state.episode/GAMES))
 			net.save_checkpoint(save_name)
 			tmp = test(save_name, params.w, params.h, params.dsize, params.s_modules, params.d_modules)
@@ -93,7 +97,7 @@ def setup_ignite(engine: Engine, params: SimpleNamespace, exp_source, run_name: 
 	handler = tb_logger.OutputHandler(
 		tag="train", metric_names=metrics,
 		output_transform=lambda a: a)
-	event = ptan_ignite.PeriodEvents.ITERS_100_COMPLETED
+	event = ptan_ignite.PeriodEvents.ITERS_1000_COMPLETED
 	tb.attach(engine, log_handler=handler, event_name=event)
 
 

@@ -86,28 +86,28 @@ class PPO(nn.Module):
 		super(PPO, self).__init__()
 
 		self.conv = nn.Sequential(
-			nn.Conv2d(input_shape[0], 32, kernel_size=2, stride=2, padding=1),
+			nn.Conv2d(input_shape[0], 8, kernel_size=3, stride=1, padding=1),
 			nn.ReLU(),
-			nn.Conv2d(32, 64, kernel_size=2, stride=2, padding=1),
+			nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1),
 			nn.ReLU(),
-			nn.Conv2d(64, 64, kernel_size=2, stride=2, padding=1),
+			nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),
 			nn.ReLU()
 		)
 
 		conv_out_size = self._get_conv_out(input_shape)
 		self.actor = nn.Sequential(
-			nn.Linear(conv_out_size, 16),
+			nn.Linear(conv_out_size, 64),
 			nn.ReLU(),
-			nn.Linear(16, n_actions)
+			nn.Linear(64, n_actions)
 		)
 		self.critic = nn.Sequential(
-			nn.Linear(conv_out_size, 16),
+			nn.Linear(conv_out_size, 32),
 			nn.ReLU(),
-			nn.Linear(16, 1)
+			nn.Linear(32, 1)
 		)
 
 	def _get_conv_out(self, shape):
-		o = self.conv(T.zeros(1, *shape))
+		o = self.conv(T.ones(1, *shape))
 		return int(np.prod(o.size()))
 
 	def forward(self, x):
